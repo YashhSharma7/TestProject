@@ -10,18 +10,21 @@
   </head>
 
   <body>
+    <div class="container">
     <h3>
-    <% if notice %>
-      <p class="alert alert-success"><%= notice %></p>
-    <% end %>
-    <% if alert %>
-      <p class="alert alert-danger"><%= alert %></p>
-    <% end %>
-    <p class="navbar-text float-right">
-      
-    </p>
-  </h3>
-  <nav style="background-color: #333; color: white; padding: 10px;" >
+      <% if notice %>
+        <p class="alert alert-success"><%= notice %></p>
+      <% end %>
+      <% if alert %>
+        <p class="alert alert-danger"><%= alert %></p>
+      <% end %>
+      <p class="navbar-text float-right">
+        
+      </p>
+    </h3>
+    
+   <% if !@hide_navigation_links %>
+  <nav style="background-color: #333; color: white; padding: 10px;">
   <% if user_signed_in? %>
     <div style="display: inline-block; margin-right: 20px;">
       Logged in as <strong><%= current_user.email %></strong>.
@@ -33,17 +36,18 @@
       <%= button_to :logout, destroy_user_session_path, method: :delete, class: "navbar-link", style: "color: white; text-decoration: none; background-color: transparent; border: none; cursor: pointer;" %>
     </div>
   <% else %>
-    <div style="display: inline-block; margin-right: 20px;">
-      <%= link_to "Sign up", new_user_registration_path, class: "navbar-link", style: "color: white; text-decoration: none;" %>
-    </div>
-    <div style="display: inline-block;">
-      <%= link_to "Login", new_user_session_path, class: "navbar-link", style: "color: white; text-decoration: none;" %>
-    </div>
+     <% if !@hide_navigation_links || !current_page?(users_confirmations_verify_otp_path) %>
+      <div style="display: inline-block; margin-right: 20px;">
+        <%= link_to "Sign up", new_user_registration_path, class: "navbar-link", style: "color: white; text-decoration: none;" %>
+      </div>
+      <div style="display: inline-block;">
+        <%= link_to "Login", new_user_session_path, class: "navbar-link", style: "color: white; text-decoration: none;" %>
+      </div>
+    <% end %>
   <% end %>
 </nav>
-
-
-   
+<% end %>
     <%= yield %>
+    </div>
   </body>
 </html>

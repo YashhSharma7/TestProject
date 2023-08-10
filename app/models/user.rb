@@ -1,4 +1,7 @@
 class User < ApplicationRecord
+  validates :email, presence: true
+  validates :password, presence: true
+
   
   devise :database_authenticatable, :registerable,
          :recoverable, :rememberable, :validatable, 
@@ -7,10 +10,37 @@ class User < ApplicationRecord
 
   after_create :send_welcome_email
 
+  def email_verified?
+
+    email_verified
+  end
+  def valid_otp?(otp)
+    return false if otp_expired?
+    self.otp == otp
+  end
+  
+  def clear_otp!
+    update(otp: nil)
+  end
+
+  def otp_expired?
+    otp_generated_at.nil? || otp_generated_at < 15.minutes.ago
+  end
+
+  def signed_up_via_github?
+    provider == 'github'
+  end
+
+  def has_password?
+    encrypted_password.present?
+  end
+
+
   private
      def send_welcome_email
+       SendEmailsJob.perform_later(self)
        #SendEmailsJob.set(wait: 1.minutes).perform_later(self)
-       SendEmailsJob.perform_later(self)       
+       #UserMailer.welcome_email(self).deliver_now       
      end
   
   def self.from_omniauth(auth)
@@ -27,28 +57,5 @@ class User < ApplicationRecord
     self.otp = rand(100000..999999).to_s
     self.otp_generated_at = Time.now
     #save
-    
   end
-  def send_otp
-    @user = current_user
-    @user.generate_otp
-    @user.save
-  end
-
-  def otp_expired?
-    #otp_generated_at < 15.minutes.ago
-  end
-
-  def verify_otp(submitted_otp)
-    return false if otp_expired?
-
-    if otp == submitted_otp
-      self.email_verified = true
-      save
-      true
-    else
-      false
-    end
-  end
-
 end
